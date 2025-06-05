@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+    ports:
+      - "8501:8501"  # Streamlit dashboard port
+    command: python deployment.py --all 

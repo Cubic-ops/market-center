@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    command: streamlit run dashboard/advanced_dashboard.py
+    environment:
+      - PYTHONPATH=/app
+      - JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+      - SPARK_HOME=/usr/local/lib/python3.9/site-packages/pyspark
+      - DATABASE_PATH=/app/finance.db
+      - SPARK_LOCAL_IP=app
+      - SPARK_PUBLIC_DNS=app
+      - SPARK_MASTER_HOST=app
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - SPARK_WORKER_PORT=7078
+    networks:
+      - spark-network
+  
+  producer:
+    build: .
+    volumes:
+      - .:/app
+    command: python -m market_data.data.producer
+    depends_on:
+      - app
+    environment:
+      - PYTHONPATH=/app
+      - JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+      - SPARK_HOME=/usr/local/lib/python3.9/site-packages/pyspark
+      - DATABASE_PATH=/app/finance.db
+      - SPARK_LOCAL_IP=producer
+      - SPARK_PUBLIC_DNS=producer
+    networks:
+      - spark-network
+networks:
+  spark-network:
+    driver: bridge
